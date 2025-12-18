@@ -1,11 +1,21 @@
 import Config
 
+# Load .env file in development
+if File.exists?(".env") do
+  File.stream!(".env")
+  |> Stream.map(&String.trim/1)
+  |> Stream.reject(&(&1 == "" or String.starts_with?(&1, "#")))
+  |> Stream.map(&String.split(&1, "=", parts: 2))
+  |> Enum.each(fn [key, value] -> System.put_env(key, value) end)
+end
+
 # Configure your database
 config :patakituo_backend, PatakituoBackend.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: System.get_env("POSTGRES_USER"),
+  password: System.get_env("POSTGRES_PASSWORD"),
   hostname: "localhost",
-  database: "patakituo_backend_dev",
+  port: System.get_env("POSTGRES_PORT", "5432") |> String.to_integer(),
+  database: System.get_env("POSTGRES_DB"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -23,7 +33,7 @@ config :patakituo_backend, PatakituoBackendWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "/SALywnbdUbXl5YqKm/mdbCR2BmUNDwpEMHTLNxZzC5l5UrH1AncPObgaCy6vji5",
+  secret_key_base: System.get_env("SECRET_KEY_BASE"),
   watchers: []
 
 # ## SSL Support
