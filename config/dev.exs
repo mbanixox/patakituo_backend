@@ -18,7 +18,8 @@ config :patakituo_backend, PatakituoBackend.Repo,
   database: System.get_env("POSTGRES_DB"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  pool_size: 10,
+  types: PatakituoBackend.PostgresTypes
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
