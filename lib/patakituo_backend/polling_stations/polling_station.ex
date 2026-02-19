@@ -6,6 +6,7 @@ defmodule PatakituoBackend.PollingStations.PollingStation do
   @foreign_key_type :binary_id
   schema "polling_stations" do
     field :name, :string
+    field :is_active, :boolean, default: true
 
     belongs_to :ward, PatakituoBackend.Wards.Ward
 
@@ -15,7 +16,7 @@ defmodule PatakituoBackend.PollingStations.PollingStation do
   @doc false
   def changeset(polling_station, attrs) do
     polling_station
-    |> cast(attrs, [:name])
-    |> validate_required([:name])
+    |> cast(attrs, [:name, :is_active])
+    |> validate_required([:name, :is_active])
   end
 end
