@@ -1,21 +1,20 @@
-defmodule PatakituoBackend.Constituencies.Constituency do
+defmodule PatakituoBackend.Wards.Ward do
   use Ecto.Schema
   import Ecto.Changeset
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
-  schema "constituencies" do
+  schema "wards" do
     field :name, :string
 
-    belongs_to :county, PatakituoBackend.Counties.County
-    has_many :wards, PatakituoBackend.Wards.Ward
+    belongs_to :constituency, PatakituoBackend.Constituencies.Constituency
 
     timestamps(type: :utc_datetime)
   end
 
   @doc false
-  def changeset(constituency, attrs) do
-    constituency
+  def changeset(ward, attrs) do
+    ward
     |> cast(attrs, [:name])
     |> validate_required([:name])
   end
