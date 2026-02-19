@@ -56,6 +56,29 @@ defmodule PatakituoBackend.Counties do
   end
 
   @doc """
+  Creates multiple counties at once.
+
+  ## Examples
+
+      iex> bulk_create_counties([%{name: "Nairobi", code: 47}, ...])
+      {:ok, [%County{}, ...]}
+
+      iex> bulk_create_counties([%{name: "", code: 1}])
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def bulk_create_counties(attrs_list) when is_list(attrs_list) do
+    Repo.transaction(fn ->
+      Enum.map(attrs_list, fn attrs ->
+        case create_county(attrs) do
+          {:ok, county} -> county
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+      end)
+    end)
+  end
+
+  @doc """
   Updates a county.
 
   ## Examples

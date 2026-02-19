@@ -15,8 +15,15 @@ defmodule PatakituoBackendWeb.CountyController do
     with {:ok, %County{} = county} <- Counties.create_county(county_params) do
       conn
       |> put_status(:created)
-      |> put_resp_header("location", ~p"/api/counties/#{county}")
       |> render(:show, county: county)
+    end
+  end
+
+  def bulk_create(conn, %{"counties" => counties_params}) when is_list(counties_params) do
+    with {:ok, counties} <- Counties.bulk_create_counties(counties_params) do
+      conn
+      |> put_status(:created)
+      |> render(:index, counties: counties)
     end
   end
 

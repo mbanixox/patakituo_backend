@@ -7,6 +7,8 @@ defmodule PatakituoBackendWeb.Router do
 
   scope "/api", PatakituoBackendWeb do
     pipe_through :api
+
+    post "/counties/bulk_create", CountyController, :bulk_create
   end
 
   # Enable LiveDashboard in development
