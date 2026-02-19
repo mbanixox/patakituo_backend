@@ -11,6 +11,9 @@ config :patakituo_backend,
   ecto_repos: [PatakituoBackend.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true]
 
+config :patakituo_backend, :iebc_base_url,
+  System.get_env("IEBC_BASE_URL") || "https://www.iebc.or.ke/registration/"
+
 # Configure the endpoint
 config :patakituo_backend, PatakituoBackendWeb.Endpoint,
   url: [host: "localhost"],

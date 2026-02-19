@@ -50,7 +50,8 @@ defmodule PatakituoBackend.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
-      {:geo_postgis, "~> 3.7"}
+      {:geo_postgis, "~> 3.7"},
+      {:req, "~> 0.5"}
     ]
   end
 
