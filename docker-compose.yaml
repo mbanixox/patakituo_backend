@@ -1,4 +1,22 @@
 services:
+  backend:
+    build: .
+    ports: 
+      - ${BACKEND_PORT}:4000
+    environment:
+      - PHX_SERVER=true
+      - PHX_HOST=${PHX_HOST}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - DATABASE_URL_DIRECT=ecto://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    networks:
+      - patakituo_network
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     image: postgis/postgis:17-3.5
@@ -13,20 +31,38 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - patakituo_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   adminer:
-    image: adminer
+    image: adminer:latest
+    container_name: patakituo_adminer
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${ADMINER_PORT}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+      ADMINER_DESIGN: pepa-linha-dark
+    networks:
+      - patakituo_network
     depends_on:
       db:
         condition: service_healthy
-  
+    profiles:
+      - dev
+
 volumes:
   postgres_data:
+    name: patakituo_postgres_data
+    driver: local
+
+networks:
+  patakituo_network:
+    name: patakituo_network
+    driver: bridge

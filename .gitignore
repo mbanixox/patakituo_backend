@@ -27,3 +27,4 @@ patakituo_backend-*.tar
 
 .env
 
+/.qodo/
