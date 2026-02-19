@@ -9,6 +9,7 @@ defmodule PatakituoBackend.Wards.Ward do
 
     belongs_to :constituency, PatakituoBackend.Constituencies.Constituency
     has_many :polling_stations, PatakituoBackend.PollingStations.PollingStation
+    has_many :registration_officers, PatakituoBackend.RegistrationOfficers.RegistrationOfficer
 
     timestamps(type: :utc_datetime)
   end
