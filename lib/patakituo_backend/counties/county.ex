@@ -8,6 +8,8 @@ defmodule PatakituoBackend.Counties.County do
     field :code, :integer
     field :name, :string
 
+    has_many :constituencies, PatakituoBackend.Constituencies.Constituency
+
     timestamps(type: :utc_datetime)
   end
 
