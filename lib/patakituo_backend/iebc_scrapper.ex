@@ -3,7 +3,13 @@ defmodule PatakituoBackend.IebcScrapper do
   Module for scrapping IEBC data in HTML format
   """
 
-  alias PatakituoBackend.{IebcParser, Constituencies, Wards, PollingStations}
+  alias PatakituoBackend.{
+    IebcParser,
+    Constituencies,
+    Wards,
+    PollingStations,
+    RegistrationOfficers
+  }
 
   @base_url Application.compile_env(:patakituo_backend, :iebc_base_url)
 
@@ -71,9 +77,16 @@ defmodule PatakituoBackend.IebcScrapper do
   def fetch_registration_officers(constituency_code) do
     url = "#{@base_url}/show_contacts.php"
 
-    case Req.post(url, form: [cid: constituency_code]) do
+    case Req.post(url, form: [ccid: constituency_code]) do
       {:ok, %{status: 200, body: body}} ->
-        {:ok, body}
+        with {:ok, parsed_data} <- IebcParser.parse_registration_officers(body),
+             {:ok, officers} <-
+               RegistrationOfficers.bulk_create_registration_officers(
+                 constituency_code,
+                 parsed_data
+               ) do
+          {:ok, officers}
+        end
 
       {:ok, %{status: status}} ->
         {:error,

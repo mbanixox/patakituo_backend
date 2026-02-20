@@ -10,6 +10,7 @@ defmodule PatakituoBackend.Constituencies.Constituency do
 
     belongs_to :county, PatakituoBackend.Counties.County
     has_many :wards, PatakituoBackend.Wards.Ward
+    has_many :registration_officers, PatakituoBackend.RegistrationOfficers.RegistrationOfficer
 
     timestamps(type: :utc_datetime)
   end

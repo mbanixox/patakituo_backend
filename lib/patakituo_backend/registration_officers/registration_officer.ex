@@ -19,5 +19,7 @@ defmodule PatakituoBackend.RegistrationOfficers.RegistrationOfficer do
     registration_officer
     |> cast(attrs, [:name, :email, :is_active])
     |> validate_required([:name, :email, :is_active])
+    |> put_change(:constituency_id, attrs[:constituency_id] || attrs["constituency_id"])
+    |> validate_required([:constituency_id])
   end
 end

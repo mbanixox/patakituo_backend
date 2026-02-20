@@ -7,6 +7,8 @@ defmodule PatakituoBackend.RegistrationOfficers do
   alias PatakituoBackend.Repo
 
   alias PatakituoBackend.RegistrationOfficers.RegistrationOfficer
+  alias PatakituoBackend.Constituencies.Constituency
+  alias PatakituoBackend.IebcScrapper
 
   @doc """
   Returns the list of registration_officers.
@@ -53,6 +55,74 @@ defmodule PatakituoBackend.RegistrationOfficers do
     %RegistrationOfficer{}
     |> RegistrationOfficer.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Creates multiple registration officers for a given constituency.
+
+  ## Examples
+
+      iex> bulk_create_registration_officers("001", [%{name: "Officer 1", email: "officer1@example.com"}, %{name: "Officer 2", email: "officer2@example.com "}])
+      {:ok, [%RegistrationOfficer{}, %RegistrationOfficer{}]}
+
+      iex> bulk_create_registration_officers("001", [%{name: nil, email: nil}])
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def bulk_create_registration_officers(constituency_iebc_code, attrs_list) when is_list(attrs_list) do
+    case Repo.get_by(Constituency, iebc_code: constituency_iebc_code) do
+      nil ->
+        {:error, "Constituency with iebc code #{constituency_iebc_code} not found"}
+
+      %Constituency{id: constituency_id} ->
+        Repo.transaction(fn ->
+          Enum.map(attrs_list, fn attrs ->
+            attrs_with_constituency = Map.put(attrs, :constituency_id, constituency_id)
+
+            case create_registration_officer(attrs_with_constituency) do
+              {:ok, officer} -> officer
+              {:error, changeset} -> Repo.rollback(changeset)
+            end
+          end)
+        end)
+    end
+  end
+
+  @doc """
+  Fetches and creates all registration officers for all constituencies from IEBC.
+
+  ## Examples
+
+      iex> fetch_all_registration_officers()
+      {:ok, %{success: [...], failed: [...]}}
+
+  """
+  def fetch_all_registration_officers do
+    constituencies = Repo.all(Constituency)
+
+    results =
+      Task.async_stream(
+        constituencies,
+        fn %Constituency{iebc_code: iebc_code} ->
+          {iebc_code, IebcScrapper.fetch_registration_officers(iebc_code)}
+        end,
+        timeout: :infinity
+      )
+      |> Enum.reduce(%{success: [], failed: []}, fn
+        {:ok, {_code, {:ok, officers}}}, acc ->
+          %{acc | success: acc.success ++ officers}
+
+        {:ok, {iebc_code, {:error, reason}}}, acc ->
+          %{acc | failed: acc.failed ++ [%{constituency_iebc_code: iebc_code, reason: reason}]}
+
+        {:exit, reason}, acc ->
+          %{
+            acc
+            | failed: acc.failed ++ [%{constituency_iebc_code: :unknown, reason: inspect(reason)}]
+          }
+      end)
+
+    {:ok, results}
   end
 
   @doc """

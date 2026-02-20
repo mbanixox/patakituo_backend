@@ -91,4 +91,46 @@ defmodule PatakituoBackend.IebcParser do
         {:error, "Failed to parse HTML: #{inspect(reason)}"}
     end
   end
+
+  def parse_registration_officers(html_content) do
+    case Floki.parse_document(html_content) do
+      {:ok, document} ->
+        officers =
+          document
+          |> Floki.find("table tr")
+          |> Enum.map(fn tr ->
+            tds = Floki.find(tr, "td")
+
+            case tds do
+              [name_td, email_td | _] ->
+                name =
+                  name_td
+                  |> Floki.text()
+                  |> String.trim()
+                  |> String.downcase()
+                  |> String.split(" ")
+                  |> Enum.map(&String.capitalize/1)
+                  |> Enum.join(" ")
+
+                email =
+                  email_td
+                  |> Floki.text()
+                  |> String.trim()
+                  |> String.downcase()
+
+                %{name: name, email: email}
+
+              _ ->
+                nil
+            end
+          end)
+          |> Enum.reject(&is_nil/1)
+          |> Enum.reject(fn %{name: name, email: email} -> name == "" or email == "" end)
+
+        {:ok, officers}
+
+      {:error, reason} ->
+        {:error, "Failed to parse HTML: #{inspect(reason)}"}
+    end
+  end
 end
