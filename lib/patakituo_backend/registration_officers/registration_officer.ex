@@ -9,7 +9,7 @@ defmodule PatakituoBackend.RegistrationOfficers.RegistrationOfficer do
     field :email, :string
     field :is_active, :boolean, default: true
 
-    belongs_to :ward, PatakituoBackend.Wards.Ward
+    belongs_to :constituency, PatakituoBackend.Constituencies.Constituency
 
     timestamps(type: :utc_datetime)
   end
