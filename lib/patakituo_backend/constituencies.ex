@@ -5,7 +5,7 @@ defmodule PatakituoBackend.Constituencies do
 
   import Ecto.Query, warn: false
   alias PatakituoBackend.Repo
-
+  alias PatakituoBackend.Counties.County
   alias PatakituoBackend.Constituencies.Constituency
 
   @doc """
@@ -53,6 +53,37 @@ defmodule PatakituoBackend.Constituencies do
     %Constituency{}
     |> Constituency.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Creates multiple constituencies for a given county.
+
+  ## Examples
+
+      iex> bulk_create_constituencies("001", [%{iebc_code: 1, name: "Constituency 1"}, %{iebc_code: 2, name: "Constituency 2"}])
+      {:ok, [%Constituency{}, %Constituency{}]}
+
+      iex> bulk_create_constituencies("001", [%{iebc_code: nil, name: "Invalid Constituency"}])
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def bulk_create_constituencies(county_code, attrs_list) when is_list(attrs_list) do
+    case Repo.get_by(County, code: county_code) do
+      nil ->
+        {:error, "County with code #{county_code} not found"}
+
+      %County{id: county_id} ->
+        Repo.transaction(fn ->
+          Enum.map(attrs_list, fn attrs ->
+            attrs_with_county = Map.put(attrs, :county_id, county_id)
+
+            case create_constituency(attrs_with_county) do
+              {:ok, constituency} -> constituency
+              {:error, changeset} -> Repo.rollback(changeset)
+            end
+          end)
+        end)
+    end
   end
 
   @doc """

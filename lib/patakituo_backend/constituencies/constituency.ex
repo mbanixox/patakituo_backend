@@ -6,6 +6,7 @@ defmodule PatakituoBackend.Constituencies.Constituency do
   @foreign_key_type :binary_id
   schema "constituencies" do
     field :name, :string
+    field :iebc_code, :integer
 
     belongs_to :county, PatakituoBackend.Counties.County
     has_many :wards, PatakituoBackend.Wards.Ward
@@ -16,7 +17,9 @@ defmodule PatakituoBackend.Constituencies.Constituency do
   @doc false
   def changeset(constituency, attrs) do
     constituency
-    |> cast(attrs, [:name])
-    |> validate_required([:name])
+    |> cast(attrs, [:name, :iebc_code])
+    |> validate_required([:name, :iebc_code])
+    |> put_change(:county_id, attrs[:county_id] || attrs["county_id"])
+    |> validate_required([:county_id])
   end
 end

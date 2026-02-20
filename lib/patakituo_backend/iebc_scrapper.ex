@@ -1,7 +1,10 @@
 defmodule PatakituoBackend.IebcScrapper do
   @moduledoc """
-  Module for scrapping IEBC data and populate the database.
+  Module for scrapping IEBC data in HTML format
   """
+
+  alias PatakituoBackend.IebcParser
+  alias PatakituoBackend.Constituencies
 
   @base_url Application.compile_env(:patakituo_backend, :iebc_base_url)
 
@@ -10,7 +13,11 @@ defmodule PatakituoBackend.IebcScrapper do
 
     case Req.post(url, form: [cid: county_code]) do
       {:ok, %{status: 200, body: body}} ->
-        {:ok, body}
+        with {:ok, parsed_data} <- IebcParser.parse_constituencies(body),
+             {:ok, constituencies} <-
+               Constituencies.bulk_create_constituencies(county_code, parsed_data) do
+          {:ok, constituencies}
+        end
 
       {:ok, %{status: status}} ->
         {:error,
