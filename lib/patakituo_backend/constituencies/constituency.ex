@@ -21,5 +21,6 @@ defmodule PatakituoBackend.Constituencies.Constituency do
     |> validate_required([:name, :iebc_code])
     |> put_change(:county_id, attrs[:county_id] || attrs["county_id"])
     |> validate_required([:county_id])
+    |> unique_constraint(:iebc_code)
   end
 end

@@ -7,6 +7,7 @@ defmodule PatakituoBackend.Constituencies do
   alias PatakituoBackend.Repo
   alias PatakituoBackend.Counties.County
   alias PatakituoBackend.Constituencies.Constituency
+  alias PatakituoBackend.IebcScrapper
 
   @doc """
   Returns the list of constituencies.
@@ -84,6 +85,38 @@ defmodule PatakituoBackend.Constituencies do
           end)
         end)
     end
+  end
+
+  @doc """
+  Fetches and creates all constituencies for all counties from IEBC.
+
+  ## Examples
+
+      iex> fetch_all_constituencies()
+      {:ok, %{success: [...], failed: [...]}}
+
+  """
+  def fetch_all_constituencies do
+    counties = Repo.all(County)
+
+    results =
+      Task.async_stream(
+        counties,
+        fn %County{code: code} -> {code, IebcScrapper.fetch_constituencies(code)} end,
+        timeout: :infinity
+      )
+      |> Enum.reduce(%{success: [], failed: []}, fn
+        {:ok, {_code, {:ok, constituencies}}}, acc ->
+          %{acc | success: acc.success ++ constituencies}
+
+        {:ok, {code, {:error, reason}}}, acc ->
+          %{acc | failed: acc.failed ++ [%{county_code: code, reason: reason}]}
+
+        {:exit, reason}, acc ->
+          %{acc | failed: acc.failed ++ [%{county_code: :unknown, reason: inspect(reason)}]}
+      end)
+
+    {:ok, results}
   end
 
   @doc """
