@@ -7,6 +7,8 @@ defmodule PatakituoBackend.PollingStations do
   alias PatakituoBackend.Repo
 
   alias PatakituoBackend.PollingStations.PollingStation
+  alias PatakituoBackend.Wards.Ward
+  alias PatakituoBackend.IebcScrapper
 
   @doc """
   Returns the list of polling_stations.
@@ -53,6 +55,69 @@ defmodule PatakituoBackend.PollingStations do
     %PollingStation{}
     |> PollingStation.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Creates multiple polling stations for a given ward.
+
+  ## Examples
+
+      iex> bulk_create_polling_stations("001", [%{name: "Station 1"}, %{name: "Station 2"}])
+      {:ok, [%PollingStation{}, %PollingStation{}]}
+
+      iex> bulk_create_polling_stations("001", [%{name: "Invalid Station"}])
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def bulk_create_polling_stations(ward_code, attrs_list) when is_list(attrs_list) do
+    case Repo.get_by(Ward, iebc_code: ward_code) do
+      nil ->
+        {:error, "Ward with code #{ward_code} not found"}
+
+      %Ward{id: ward_id} ->
+        Repo.transaction(fn ->
+          Enum.map(attrs_list, fn attrs ->
+            attrs_with_ward = Map.put(attrs, :ward_id, ward_id)
+
+            case create_polling_station(attrs_with_ward) do
+              {:ok, polling_station} -> polling_station
+              {:error, changeset} -> Repo.rollback(changeset)
+            end
+          end)
+        end)
+    end
+  end
+
+  @doc """
+  Fetches and creates all polling stations for all wards from IEBC.
+
+  ## Examples
+
+      iex> fetch_all_polling_stations()
+      {:ok, %{success: [...], failed: [...]}}
+
+  """
+  def fetch_all_polling_stations do
+    wards = Repo.all(Ward)
+
+    results =
+      Task.async_stream(
+        wards,
+        fn %Ward{iebc_code: code} -> {code, IebcScrapper.fetch_polling_stations(code)} end,
+        timeout: :infinity
+      )
+      |> Enum.reduce(%{success: [], failed: []}, fn
+        {:ok, {_code, {:ok, stations}}}, acc ->
+          %{acc | success: acc.success ++ stations}
+
+        {:ok, {code, {:error, reason}}}, acc ->
+          %{acc | failed: acc.failed ++ [%{ward_code: code, reason: reason}]}
+
+        {:exit, reason}, acc ->
+          %{acc | failed: acc.failed ++ [%{ward_code: :unknown, reason: inspect(reason)}]}
+      end)
+
+    {:ok, results}
   end
 
   @doc """

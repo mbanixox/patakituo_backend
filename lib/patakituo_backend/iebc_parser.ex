@@ -1,5 +1,5 @@
 defmodule PatakituoBackend.IebcParser do
-  @moduledoc"""
+  @moduledoc """
   Module for parsing IEBC data from HTML content
   """
 
@@ -65,6 +65,30 @@ defmodule PatakituoBackend.IebcParser do
     end
   end
 
+  def parse_polling_stations(html_content) do
+    case Floki.parse_document(html_content) do
+      {:ok, document} ->
+        stations =
+          document
+          |> Floki.find("table#overallstats tbody tr td")
+          |> Enum.map(fn td ->
+            name =
+              td
+              |> Floki.text()
+              |> String.trim()
+              |> String.downcase()
+              |> String.split(" ")
+              |> Enum.map(&String.capitalize/1)
+              |> Enum.join(" ")
 
+            %{name: name}
+          end)
+          |> Enum.reject(fn %{name: name} -> name == "" end)
 
+        {:ok, stations}
+
+      {:error, reason} ->
+        {:error, "Failed to parse HTML: #{inspect(reason)}"}
+    end
+  end
 end

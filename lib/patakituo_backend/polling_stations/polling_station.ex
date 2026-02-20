@@ -18,5 +18,7 @@ defmodule PatakituoBackend.PollingStations.PollingStation do
     polling_station
     |> cast(attrs, [:name, :is_active])
     |> validate_required([:name, :is_active])
+    |> put_change(:ward_id, attrs[:ward_id] || attrs["ward_id"])
+    |> validate_required([:ward_id])
   end
 end

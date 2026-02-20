@@ -3,7 +3,7 @@ defmodule PatakituoBackend.IebcScrapper do
   Module for scrapping IEBC data in HTML format
   """
 
-  alias PatakituoBackend.{IebcParser, Constituencies, Wards}
+  alias PatakituoBackend.{IebcParser, Constituencies, Wards, PollingStations}
 
   @base_url Application.compile_env(:patakituo_backend, :iebc_base_url)
 
@@ -43,22 +43,28 @@ defmodule PatakituoBackend.IebcScrapper do
          "Failed to fetch wards for constituency iebc code #{constituency_iebc_code}, status: #{status}"}
 
       {:error, reason} ->
-        {:error, "Error fetching wards for constituency iebc code #{constituency_iebc_code}: #{reason}"}
+        {:error,
+         "Error fetching wards for constituency iebc code #{constituency_iebc_code}: #{reason}"}
     end
   end
 
-  def fetch_polling_stations(ward_code) do
+  def fetch_polling_stations(ward_iebc_code) do
     url = "#{@base_url}/show_stations.php"
 
-    case Req.post(url, form: [cid: ward_code]) do
+    case Req.post(url, form: [wardid: ward_iebc_code]) do
       {:ok, %{status: 200, body: body}} ->
-        {:ok, body}
+        with {:ok, parsed_data} <- IebcParser.parse_polling_stations(body),
+             {:ok, stations} <-
+               PollingStations.bulk_create_polling_stations(ward_iebc_code, parsed_data) do
+          {:ok, stations}
+        end
 
       {:ok, %{status: status}} ->
-        {:error, "Failed to fetch polling stations for ward code #{ward_code}, status: #{status}"}
+        {:error,
+         "Failed to fetch polling stations for ward code #{ward_iebc_code}, status: #{status}"}
 
       {:error, reason} ->
-        {:error, "Error fetching polling stations for ward code #{ward_code}: #{reason}"}
+        {:error, "Error fetching polling stations for ward code #{ward_iebc_code}: #{reason}"}
     end
   end
 
