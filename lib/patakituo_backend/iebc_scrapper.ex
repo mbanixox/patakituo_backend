@@ -3,8 +3,7 @@ defmodule PatakituoBackend.IebcScrapper do
   Module for scrapping IEBC data in HTML format
   """
 
-  alias PatakituoBackend.IebcParser
-  alias PatakituoBackend.Constituencies
+  alias PatakituoBackend.{IebcParser, Constituencies, Wards}
 
   @base_url Application.compile_env(:patakituo_backend, :iebc_base_url)
 
@@ -28,19 +27,23 @@ defmodule PatakituoBackend.IebcScrapper do
     end
   end
 
-  def fetch_wards(constituency_code) do
+  def fetch_wards(constituency_iebc_code) do
     url = "#{@base_url}/show_wards.php"
 
-    case Req.post(url, form: [cid: constituency_code]) do
+    case Req.post(url, form: [ccid: constituency_iebc_code]) do
       {:ok, %{status: 200, body: body}} ->
-        {:ok, body}
+        with {:ok, parsed_data} <- IebcParser.parse_wards(body),
+             {:ok, wards} <-
+               Wards.bulk_create_wards(constituency_iebc_code, parsed_data) do
+          {:ok, wards}
+        end
 
       {:ok, %{status: status}} ->
         {:error,
-         "Failed to fetch wards for constituency code #{constituency_code}, status: #{status}"}
+         "Failed to fetch wards for constituency iebc code #{constituency_iebc_code}, status: #{status}"}
 
       {:error, reason} ->
-        {:error, "Error fetching wards for constituency code #{constituency_code}: #{reason}"}
+        {:error, "Error fetching wards for constituency iebc code #{constituency_iebc_code}: #{reason}"}
     end
   end
 

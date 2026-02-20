@@ -6,6 +6,7 @@ defmodule PatakituoBackend.Wards.Ward do
   @foreign_key_type :binary_id
   schema "wards" do
     field :name, :string
+    field :iebc_code, :integer
 
     belongs_to :constituency, PatakituoBackend.Constituencies.Constituency
     has_many :polling_stations, PatakituoBackend.PollingStations.PollingStation
@@ -17,7 +18,10 @@ defmodule PatakituoBackend.Wards.Ward do
   @doc false
   def changeset(ward, attrs) do
     ward
-    |> cast(attrs, [:name])
-    |> validate_required([:name])
+    |> cast(attrs, [:name, :iebc_code])
+    |> validate_required([:name, :iebc_code])
+    |> unique_constraint(:iebc_code)
+    |> put_change(:constituency_id, attrs[:constituency_id] || attrs["constituency_id"])
+    |> validate_required([:constituency_id])
   end
 end
