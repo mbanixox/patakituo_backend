@@ -52,7 +52,8 @@ defmodule PatakituoBackend.MixProject do
       {:bandit, "~> 1.5"},
       {:geo_postgis, "~> 3.7"},
       {:req, "~> 0.5"},
-      {:floki, "~> 0.38"}
+      {:floki, "~> 0.38"},
+      {:pbkdf2_elixir, "~> 2.3"}
     ]
   end
 
