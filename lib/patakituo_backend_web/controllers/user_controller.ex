@@ -4,7 +4,7 @@ defmodule PatakituoBackendWeb.UserController do
   alias PatakituoBackend.Users
   alias PatakituoBackend.Users.User
 
-  alias PatakituoBackendWeb.Auth.Guardian
+  alias PatakituoBackendWeb.Auth.{Guardian, ErrorResponse}
 
   action_fallback PatakituoBackendWeb.FallbackController
 
@@ -19,6 +19,17 @@ defmodule PatakituoBackendWeb.UserController do
       conn
       |> put_status(:created)
       |> render(:show, user: user, token: token)
+    end
+  end
+
+  def sign_in(conn, %{"email" => email, "password" => password}) do
+    case Guardian.authenticate(email, password) do
+      {:ok, user, token} ->
+        conn
+        |> put_status(:ok)
+        |> render(:show, user: user, token: token)
+
+      {:error, :unauthorized} -> raise ErrorResponse.Unauthorized, message: "Invalid email or password"
     end
   end
 
