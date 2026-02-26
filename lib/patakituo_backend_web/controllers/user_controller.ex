@@ -4,6 +4,8 @@ defmodule PatakituoBackendWeb.UserController do
   alias PatakituoBackend.Users
   alias PatakituoBackend.Users.User
 
+  alias PatakituoBackendWeb.Auth.Guardian
+
   action_fallback PatakituoBackendWeb.FallbackController
 
   def index(conn, _params) do
@@ -12,11 +14,11 @@ defmodule PatakituoBackendWeb.UserController do
   end
 
   def create(conn, %{"user" => user_params}) do
-    with {:ok, %User{} = user} <- Users.create_user(user_params) do
+    with {:ok, %User{} = user} <- Users.create_user(user_params),
+         {:ok, token, _claims} <- Guardian.encode_and_sign(user) do
       conn
       |> put_status(:created)
-      |> put_resp_header("location", ~p"/api/users/#{user}")
-      |> render(:show, user: user)
+      |> render(:show, user: user, token: token)
     end
   end
 

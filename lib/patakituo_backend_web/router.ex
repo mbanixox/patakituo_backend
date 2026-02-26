@@ -8,6 +8,8 @@ defmodule PatakituoBackendWeb.Router do
   scope "/api", PatakituoBackendWeb do
     pipe_through :api
 
+    post "/users/create", UserController, :create
+
     post "/counties/bulk_create", CountyController, :bulk_create
   end
 

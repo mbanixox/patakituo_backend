@@ -32,7 +32,6 @@ defmodule PatakituoBackend.Users.User do
     ])
     |> validate_required([
       :first_name,
-      :middle_name,
       :last_name,
       :age,
       :email,

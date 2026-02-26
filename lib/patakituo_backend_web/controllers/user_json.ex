@@ -11,8 +11,8 @@ defmodule PatakituoBackendWeb.UserJSON do
   @doc """
   Renders a single user.
   """
-  def show(%{user: user}) do
-    %{data: data(user)}
+  def show(%{user: user, token: token}) do
+    %{data: data(user), token: token}
   end
 
   defp data(%User{} = user) do
