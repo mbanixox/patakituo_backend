@@ -60,11 +60,19 @@ defmodule PatakituoBackendWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :auth do
+    plug PatakituoBackendWeb.Auth.Pipeline
+  end
+
   scope "/api", PatakituoBackendWeb do
     pipe_through :api
 
     post "/users/create", UserController, :create
     post "/sign_in", UserController, :sign_in
+  end
+
+  scope "/api", PatakituoBackendWeb do
+    pipe_through [:api, :auth]
 
     post "/counties/bulk_create", CountyController, :bulk_create
   end
