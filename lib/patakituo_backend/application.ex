@@ -15,6 +15,7 @@ defmodule PatakituoBackend.Application do
       # Start a worker by calling: PatakituoBackend.Worker.start_link(arg)
       # {PatakituoBackend.Worker, arg},
       # Start to serve requests, typically the last entry
+      Guardian.DB.Sweeper,
       PatakituoBackendWeb.Endpoint
     ]
 
