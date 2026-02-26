@@ -62,6 +62,7 @@ defmodule PatakituoBackendWeb.Router do
 
   pipeline :auth do
     plug PatakituoBackendWeb.Auth.Pipeline
+    plug PatakituoBackendWeb.Auth.SetUser
   end
 
   scope "/api", PatakituoBackendWeb do
@@ -73,6 +74,9 @@ defmodule PatakituoBackendWeb.Router do
 
   scope "/api", PatakituoBackendWeb do
     pipe_through [:api, :auth]
+
+    patch "/users/update", UserController, :update
+    delete "/users/delete/:id", UserController, :delete
 
     post "/counties/bulk_create", CountyController, :bulk_create
   end

@@ -45,6 +45,24 @@ defmodule PatakituoBackend.Users.User do
     |> put_hashed_password()
   end
 
+  def update_changeset(user, attrs) do
+    user
+    |> cast(attrs, [
+      :first_name,
+      :middle_name,
+      :last_name,
+      :age,
+      :email,
+      :password,
+      :phone_number
+    ])
+    |> unique_constraint(:email)
+    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
+    |> validate_length(:email, max: 160)
+    |> validate_length(:password, min: 8)
+    |> put_hashed_password()
+  end
+
   defp put_hashed_password(
          %Ecto.Changeset{valid?: true, changes: %{password: password}} = changeset
        ) do

@@ -15,6 +15,11 @@ defmodule PatakituoBackendWeb.UserJSON do
     %{data: data(user), token: token}
   end
 
+  def show(%{user: user}) do
+    %{data: data(user)}
+  end
+
+
   defp data(%User{} = user) do
     %{
       id: user.id,
