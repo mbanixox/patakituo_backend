@@ -8,6 +8,10 @@ defmodule PatakituoBackendWeb.UserController do
 
   action_fallback PatakituoBackendWeb.FallbackController
 
+  import PatakituoBackendWeb.Auth.AuthorizedPlug
+
+  plug :is_authorized_user when action in [:update, :delete]
+
   def index(conn, _params) do
     users = Users.list_users()
     render(conn, :index, users: users)
@@ -38,8 +42,8 @@ defmodule PatakituoBackendWeb.UserController do
     render(conn, :show, user: user)
   end
 
-  def update(conn, %{"id" => id, "user" => user_params}) do
-    user = Users.get_user!(id)
+  def update(conn, %{"user" => user_params}) do
+    user = Users.get_user!(user_params["id"])
 
     with {:ok, %User{} = user} <- Users.update_user(user, user_params) do
       render(conn, :show, user: user)
