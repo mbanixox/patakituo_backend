@@ -37,6 +37,16 @@ defmodule PatakituoBackendWeb.UserController do
     end
   end
 
+  def sign_out(conn, %{}) do
+    user = conn.assigns[:user]
+    token = Guardian.Plug.current_token(conn)
+    Guardian.revoke(token)
+
+    conn
+    |> put_status(:ok)
+    |> render(:show, user: user, token: nil)
+  end
+
   def show(conn, %{"id" => id}) do
     user = Users.get_user!(id)
     render(conn, :show, user: user)
