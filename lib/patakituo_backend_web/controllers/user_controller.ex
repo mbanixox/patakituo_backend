@@ -18,22 +18,24 @@ defmodule PatakituoBackendWeb.UserController do
   end
 
   def create(conn, %{"user" => user_params}) do
-    with {:ok, %User{} = user} <- Users.create_user(user_params),
-         {:ok, token, _claims} <- Guardian.encode_and_sign(user) do
-      conn
-      |> put_status(:created)
-      |> render(:show, user: user, token: token)
+    with {:ok, %User{} = user} <- Users.create_user(user_params) do
+      authorize_user(conn, user.email, user_params["password"])
     end
   end
 
   def sign_in(conn, %{"email" => email, "password" => password}) do
+    authorize_user(conn, email, password)
+  end
+
+  defp authorize_user(conn, email, password) do
     case Guardian.authenticate(email, password) do
       {:ok, user, token} ->
         conn
         |> put_status(:ok)
         |> render(:show, user: user, token: token)
 
-      {:error, :unauthorized} -> raise ErrorResponse.Unauthorized, message: "Invalid email or password"
+      {:error, :unauthorized} ->
+        raise ErrorResponse.Unauthorized, message: "Invalid email or password"
     end
   end
 
@@ -45,6 +47,15 @@ defmodule PatakituoBackendWeb.UserController do
     conn
     |> put_status(:ok)
     |> render(:show, user: user, token: nil)
+  end
+
+  def refresh_token(conn, %{}) do
+    token = Guardian.Plug.current_token(conn)
+    {:ok, user, new_token} = Guardian.authenticate(token)
+
+    conn
+    |> put_status(:ok)
+    |> render(:show, user: user, token: new_token)
   end
 
   def show(conn, %{"id" => id}) do

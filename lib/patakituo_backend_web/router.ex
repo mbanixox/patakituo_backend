@@ -77,6 +77,8 @@ defmodule PatakituoBackendWeb.Router do
 
     patch "/users/update", UserController, :update
     delete "/users/delete/:id", UserController, :delete
+
+    post "/users/refresh_token", UserController, :refresh_token
     post "/users/sign_out", UserController, :sign_out
 
     post "/counties/bulk_create", CountyController, :bulk_create
