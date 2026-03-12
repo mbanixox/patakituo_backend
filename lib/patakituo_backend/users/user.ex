@@ -14,6 +14,7 @@ defmodule PatakituoBackend.Users.User do
     field :password, :string, virtual: true
     field :hashed_password, :string
     field :phone_number, :string
+    field :location, Geo.PostGIS.Geometry
 
     timestamps(type: :utc_datetime)
   end
