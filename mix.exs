@@ -55,7 +55,8 @@ defmodule PatakituoBackend.MixProject do
       {:floki, "~> 0.38"},
       {:pbkdf2_elixir, "~> 2.3"},
       {:guardian, "~> 2.4"},
-      {:guardian_db, "~> 3.0"}
+      {:guardian_db, "~> 3.0"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
 
