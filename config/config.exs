@@ -11,8 +11,9 @@ config :patakituo_backend,
   ecto_repos: [PatakituoBackend.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true]
 
-config :patakituo_backend, :iebc_base_url,
-  System.get_env("IEBC_BASE_URL") || "https://www.iebc.or.ke/registration/"
+config :patakituo_backend,
+       :iebc_base_url,
+       System.get_env("IEBC_BASE_URL") || "https://www.iebc.or.ke/registration/"
 
 # Configure the endpoint
 config :patakituo_backend, PatakituoBackendWeb.Endpoint,
@@ -42,6 +43,11 @@ config :guardian, Guardian.DB,
   repo: PatakituoBackend.Repo,
   schema_name: "guardian_tokens",
   sweep_interval: 60
+
+config :patakituo_backend, :nominatim,
+  url: System.get_env("NOMINATIM_URL") || "https://nominatim.openstreetmap.org",
+  user_agent:
+    "PatakituoBackend/1.0 (#{System.get_env("NOMINATIM_CONTACT") || "email@example.com"})"
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
