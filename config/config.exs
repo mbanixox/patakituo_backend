@@ -10,7 +10,7 @@ import Config
 config :patakituo_backend, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
-  queues: [default: 10],
+  queues: [default: 10, geocoding: 1],
   repo: PatakituoBackend.Repo
 
 config :patakituo_backend,
