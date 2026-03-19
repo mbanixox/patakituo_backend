@@ -58,7 +58,8 @@ defmodule PatakituoBackend.MixProject do
       {:guardian_db, "~> 3.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:oban, "~> 2.20"},
-      {:igniter, "~> 0.5", only: [:dev]}
+      {:igniter, "~> 0.5", only: [:dev]},
+      {:oban_web, "~> 2.11"}
     ]
   end
 

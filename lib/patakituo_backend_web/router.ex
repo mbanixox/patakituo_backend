@@ -1,6 +1,7 @@
 defmodule PatakituoBackendWeb.Router do
   use PatakituoBackendWeb, :router
 
+  import Oban.Web.Router
   use Plug.ErrorHandler
 
   @doc """
@@ -60,6 +61,13 @@ defmodule PatakituoBackendWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :browser do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+  end
+
   pipeline :auth do
     plug PatakituoBackendWeb.Auth.Pipeline
     plug PatakituoBackendWeb.Auth.SetUser
@@ -97,6 +105,12 @@ defmodule PatakituoBackendWeb.Router do
       pipe_through [:fetch_session, :protect_from_forgery]
 
       live_dashboard "/dashboard", metrics: PatakituoBackendWeb.Telemetry
+    end
+
+    scope "/" do
+      pipe_through :browser
+
+      oban_dashboard("/oban")
     end
   end
 end
