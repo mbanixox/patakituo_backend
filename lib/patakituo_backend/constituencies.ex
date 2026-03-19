@@ -75,16 +75,21 @@ defmodule PatakituoBackend.Constituencies do
 
       %County{id: county_id} ->
         Repo.transaction(fn ->
-          Enum.map(attrs_list, fn attrs ->
-            attrs_with_county = Map.put(attrs, :county_id, county_id)
-
-            case create_constituency(attrs_with_county) do
-              {:ok, constituency} -> constituency
-              {:error, changeset} -> Repo.rollback(changeset)
-            end
-          end)
+          iterate_and_create_constituencies(attrs_list, county_id)
         end)
     end
+  end
+
+  defp iterate_and_create_constituencies(attrs_list, county_id) do
+    Enum.map(attrs_list, fn attrs ->
+      attrs
+      |> Map.put(:county_id, county_id)
+      |> create_constituency()
+      |> case do
+        {:ok, constituency} -> constituency
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
   end
 
   @doc """

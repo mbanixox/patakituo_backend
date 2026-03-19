@@ -18,10 +18,8 @@ defmodule PatakituoBackend.IebcScrapper do
 
     case Req.post(url, form: [cid: county_code]) do
       {:ok, %{status: 200, body: body}} ->
-        with {:ok, parsed_data} <- IebcParser.parse_constituencies(body),
-             {:ok, constituencies} <-
-               Constituencies.bulk_create_constituencies(county_code, parsed_data) do
-          {:ok, constituencies}
+        with {:ok, parsed_data} <- IebcParser.parse_constituencies(body) do
+          Constituencies.bulk_create_constituencies(county_code, parsed_data)
         end
 
       {:ok, %{status: status}} ->
@@ -38,10 +36,8 @@ defmodule PatakituoBackend.IebcScrapper do
 
     case Req.post(url, form: [ccid: constituency_iebc_code]) do
       {:ok, %{status: 200, body: body}} ->
-        with {:ok, parsed_data} <- IebcParser.parse_wards(body),
-             {:ok, wards} <-
-               Wards.bulk_create_wards(constituency_iebc_code, parsed_data) do
-          {:ok, wards}
+        with {:ok, parsed_data} <- IebcParser.parse_wards(body) do
+          Wards.bulk_create_wards(constituency_iebc_code, parsed_data)
         end
 
       {:ok, %{status: status}} ->
@@ -59,10 +55,8 @@ defmodule PatakituoBackend.IebcScrapper do
 
     case Req.post(url, form: [wardid: ward_iebc_code]) do
       {:ok, %{status: 200, body: body}} ->
-        with {:ok, parsed_data} <- IebcParser.parse_polling_stations(body),
-             {:ok, stations} <-
-               PollingStations.bulk_create_polling_stations(ward_iebc_code, parsed_data) do
-          {:ok, stations}
+        with {:ok, parsed_data} <- IebcParser.parse_polling_stations(body) do
+          PollingStations.bulk_create_polling_stations(ward_iebc_code, parsed_data)
         end
 
       {:ok, %{status: status}} ->
@@ -79,13 +73,11 @@ defmodule PatakituoBackend.IebcScrapper do
 
     case Req.post(url, form: [ccid: constituency_code]) do
       {:ok, %{status: 200, body: body}} ->
-        with {:ok, parsed_data} <- IebcParser.parse_registration_officers(body),
-             {:ok, officers} <-
-               RegistrationOfficers.bulk_create_registration_officers(
-                 constituency_code,
-                 parsed_data
-               ) do
-          {:ok, officers}
+        with {:ok, parsed_data} <- IebcParser.parse_registration_officers(body) do
+          RegistrationOfficers.bulk_create_registration_officers(
+            constituency_code,
+            parsed_data
+          )
         end
 
       {:ok, %{status: status}} ->

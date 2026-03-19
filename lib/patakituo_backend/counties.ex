@@ -69,12 +69,16 @@ defmodule PatakituoBackend.Counties do
   """
   def bulk_create_counties(attrs_list) when is_list(attrs_list) do
     Repo.transaction(fn ->
-      Enum.map(attrs_list, fn attrs ->
-        case create_county(attrs) do
-          {:ok, county} -> county
-          {:error, changeset} -> Repo.rollback(changeset)
-        end
-      end)
+      iterate_and_create_counties(attrs_list)
+    end)
+  end
+
+  defp iterate_and_create_counties(attrs_list) do
+    Enum.map(attrs_list, fn attrs ->
+      case create_county(attrs) do
+        {:ok, county} -> county
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
     end)
   end
 

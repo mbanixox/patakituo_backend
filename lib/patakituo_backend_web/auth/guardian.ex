@@ -49,8 +49,8 @@ defmodule PatakituoBackendWeb.Auth.Guardian do
 
   def authenticate(token) do
     with {:ok, claims} <- decode_and_verify(token),
-         {:ok, user} <- resource_from_claims(claims),
-         {:ok, _old, {new_token, _new_claims}} = refresh(token) do
+         {:ok, user} <- resource_from_claims(claims) do
+      {:ok, _old, {new_token, _new_claims}} = refresh(token)
       {:ok, user, new_token}
     else
       {:error, _message} -> raise ErrorResponse.NotFound

@@ -76,16 +76,21 @@ defmodule PatakituoBackend.PollingStations do
 
       %Ward{id: ward_id} ->
         Repo.transaction(fn ->
-          Enum.map(attrs_list, fn attrs ->
-            attrs_with_ward = Map.put(attrs, :ward_id, ward_id)
-
-            case create_polling_station(attrs_with_ward) do
-              {:ok, polling_station} -> polling_station
-              {:error, changeset} -> Repo.rollback(changeset)
-            end
-          end)
+          iterate_and_create_polling_stations(attrs_list, ward_id)
         end)
     end
+  end
+
+  defp iterate_and_create_polling_stations(attrs_list, ward_id) do
+    Enum.map(attrs_list, fn attrs ->
+      attrs
+      |> Map.put(:ward_id, ward_id)
+      |> create_polling_station()
+      |> case do
+        {:ok, polling_station} -> polling_station
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
   end
 
   @doc """

@@ -69,23 +69,29 @@ defmodule PatakituoBackend.RegistrationOfficers do
       {:error, %Ecto.Changeset{}}
 
   """
-  def bulk_create_registration_officers(constituency_iebc_code, attrs_list) when is_list(attrs_list) do
+  def bulk_create_registration_officers(constituency_iebc_code, attrs_list)
+      when is_list(attrs_list) do
     case Repo.get_by(Constituency, iebc_code: constituency_iebc_code) do
       nil ->
         {:error, "Constituency with iebc code #{constituency_iebc_code} not found"}
 
       %Constituency{id: constituency_id} ->
         Repo.transaction(fn ->
-          Enum.map(attrs_list, fn attrs ->
-            attrs_with_constituency = Map.put(attrs, :constituency_id, constituency_id)
-
-            case create_registration_officer(attrs_with_constituency) do
-              {:ok, officer} -> officer
-              {:error, changeset} -> Repo.rollback(changeset)
-            end
-          end)
+          iterate_and_create_registration_officers(attrs_list, constituency_id)
         end)
     end
+  end
+
+  defp iterate_and_create_registration_officers(attrs_list, constituency_id) do
+    Enum.map(attrs_list, fn attrs ->
+      attrs
+      |> Map.put(:constituency_id, constituency_id)
+      |> create_registration_officer()
+      |> case do
+        {:ok, officer} -> officer
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
   end
 
   @doc """

@@ -77,16 +77,21 @@ defmodule PatakituoBackend.Wards do
 
       %Constituency{id: constituency_id} ->
         Repo.transaction(fn ->
-          Enum.map(attrs_list, fn attrs ->
-            attrs_with_constituency = Map.put(attrs, :constituency_id, constituency_id)
-
-            case create_ward(attrs_with_constituency) do
-              {:ok, ward} -> ward
-              {:error, changeset} -> Repo.rollback(changeset)
-            end
-          end)
+          iterate_and_create_wards(attrs_list, constituency_id)
         end)
     end
+  end
+
+  defp iterate_and_create_wards(attrs_list, constituency_id) do
+    Enum.map(attrs_list, fn attrs ->
+      attrs
+      |> Map.put(:constituency_id, constituency_id)
+      |> create_ward()
+      |> case do
+        {:ok, ward} -> ward
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
   end
 
   @doc """
@@ -104,7 +109,9 @@ defmodule PatakituoBackend.Wards do
     results =
       Task.async_stream(
         constituencies,
-        fn %Constituency{iebc_code: iebc_code} -> {iebc_code, IebcScrapper.fetch_wards(iebc_code)} end,
+        fn %Constituency{iebc_code: iebc_code} ->
+          {iebc_code, IebcScrapper.fetch_wards(iebc_code)}
+        end,
         timeout: :infinity
       )
       |> Enum.reduce(%{success: [], failed: []}, fn
@@ -115,7 +122,10 @@ defmodule PatakituoBackend.Wards do
           %{acc | failed: acc.failed ++ [%{constituency_iebc_code: iebc_code, reason: reason}]}
 
         {:exit, reason}, acc ->
-          %{acc | failed: acc.failed ++ [%{constituency_iebc_code: :unknown, reason: inspect(reason)}]}
+          %{
+            acc
+            | failed: acc.failed ++ [%{constituency_iebc_code: :unknown, reason: inspect(reason)}]
+          }
       end)
 
     {:ok, results}

@@ -22,8 +22,7 @@ defmodule PatakituoBackend.IebcParser do
                 name
                 |> String.downcase()
                 |> String.split(" ")
-                |> Enum.map(&String.capitalize/1)
-                |> Enum.join(" ")
+                |> Enum.map_join(" ", &String.capitalize/1)
             }
           end)
 
@@ -53,8 +52,7 @@ defmodule PatakituoBackend.IebcParser do
                 name
                 |> String.downcase()
                 |> String.split(" ")
-                |> Enum.map(&String.capitalize/1)
-                |> Enum.join(" ")
+                |> Enum.map_join(" ", &String.capitalize/1)
             }
           end)
 
@@ -78,8 +76,7 @@ defmodule PatakituoBackend.IebcParser do
               |> String.trim()
               |> String.downcase()
               |> String.split(" ")
-              |> Enum.map(&String.capitalize/1)
-              |> Enum.join(" ")
+              |> Enum.map_join(" ", &String.capitalize/1)
 
             %{name: name}
           end)
@@ -98,39 +95,42 @@ defmodule PatakituoBackend.IebcParser do
         officers =
           document
           |> Floki.find("table tr")
-          |> Enum.map(fn tr ->
-            tds = Floki.find(tr, "td")
-
-            case tds do
-              [name_td, email_td | _] ->
-                name =
-                  name_td
-                  |> Floki.text()
-                  |> String.trim()
-                  |> String.downcase()
-                  |> String.split(" ")
-                  |> Enum.map(&String.capitalize/1)
-                  |> Enum.join(" ")
-
-                email =
-                  email_td
-                  |> Floki.text()
-                  |> String.trim()
-                  |> String.downcase()
-
-                %{name: name, email: email}
-
-              _ ->
-                nil
-            end
+          |> Enum.map(&parse_table_row/1)
+          |> Enum.reject(fn
+            nil -> true
+            %{name: name, email: email} -> name == "" or email == ""
           end)
-          |> Enum.reject(&is_nil/1)
-          |> Enum.reject(fn %{name: name, email: email} -> name == "" or email == "" end)
 
         {:ok, officers}
 
       {:error, reason} ->
         {:error, "Failed to parse HTML: #{inspect(reason)}"}
+    end
+  end
+
+  defp parse_table_row(tr) do
+    tds = Floki.find(tr, "td")
+
+    case tds do
+      [name_td, email_td | _] ->
+        name =
+          name_td
+          |> Floki.text()
+          |> String.trim()
+          |> String.downcase()
+          |> String.split(" ")
+          |> Enum.map_join(" ", &String.capitalize/1)
+
+        email =
+          email_td
+          |> Floki.text()
+          |> String.trim()
+          |> String.downcase()
+
+        %{name: name, email: email}
+
+      _ ->
+        nil
     end
   end
 end
