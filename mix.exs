@@ -56,7 +56,9 @@ defmodule PatakituoBackend.MixProject do
       {:pbkdf2_elixir, "~> 2.3"},
       {:guardian, "~> 2.4"},
       {:guardian_db, "~> 3.0"},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:oban, "~> 2.20"},
+      {:igniter, "~> 0.5", only: [:dev]}
     ]
   end
 

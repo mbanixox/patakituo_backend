@@ -1,4 +1,5 @@
 import Config
+config :patakituo_backend, Oban, testing: :manual
 
 # Configure your database
 #

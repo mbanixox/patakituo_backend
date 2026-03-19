@@ -7,6 +7,12 @@
 # General application configuration
 import Config
 
+config :patakituo_backend, Oban,
+  engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.Postgres,
+  queues: [default: 10],
+  repo: PatakituoBackend.Repo
+
 config :patakituo_backend,
   ecto_repos: [PatakituoBackend.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true]

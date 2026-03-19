@@ -11,6 +11,7 @@ defmodule PatakituoBackend.Application do
       PatakituoBackendWeb.Telemetry,
       PatakituoBackend.Repo,
       {DNSCluster, query: Application.get_env(:patakituo_backend, :dns_cluster_query) || :ignore},
+      {Oban, Application.fetch_env!(:patakituo_backend, Oban)},
       {Phoenix.PubSub, name: PatakituoBackend.PubSub},
       # Start a worker by calling: PatakituoBackend.Worker.start_link(arg)
       # {PatakituoBackend.Worker, arg},
