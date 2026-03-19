@@ -148,8 +148,14 @@ defmodule PatakituoBackend.PollingStations do
         GeocodingWorker.new(%{"station_id" => id}, schedule_in: index * 2 + 1)
       end)
 
-    inserted_jobs = Oban.insert_all(PatakituoBackend.Oban, jobs)
-    {:ok, length(inserted_jobs)}
+    # Insert jobs in batches to avoid overwhelming the database
+    inserted_count =
+      jobs
+      |> Enum.chunk_every(500)
+      |> Enum.flat_map(&Oban.insert_all/1)
+      |> length()
+
+    {:ok, inserted_count}
   end
 
   @doc """
