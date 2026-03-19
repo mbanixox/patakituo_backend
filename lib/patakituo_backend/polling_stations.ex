@@ -9,6 +9,7 @@ defmodule PatakituoBackend.PollingStations do
   alias PatakituoBackend.PollingStations.PollingStation
   alias PatakituoBackend.Wards.Ward
   alias PatakituoBackend.IebcScrapper
+  alias PatakituoBackend.Workers.GeocodingWorker
 
   @doc """
   Returns the list of polling_stations.
@@ -123,6 +124,32 @@ defmodule PatakituoBackend.PollingStations do
       end)
 
     {:ok, results}
+  end
+
+  @doc """
+  Enqueues an Oban geocoding job for every polling station that has no location.
+  Jobs run one at a time (geocoding queue concurrency: 1) to respect Nominatim's
+  1 req/s rate limit. Stations where Nominatim finds no result are skipped silently.
+  Returns the number of jobs enqueued.
+  """
+  def bulk_geocode_stations do
+    station_ids =
+      from(station in PollingStation,
+        where: is_nil(station.location) or station.location_available == false,
+        select: station.id
+      )
+      |> Repo.all()
+
+    jobs =
+      station_ids
+      |> Enum.with_index()
+      # Schedule each job with a delay to ensure we don't exceed the 1 req/s rate limit
+      |> Enum.map(fn {id, index} ->
+        GeocodingWorker.new(%{"station_id" => id}, schedule_in: index * 2 + 1)
+      end)
+
+    inserted_jobs = Oban.insert_all(PatakituoBackend.Oban, jobs)
+    {:ok, length(inserted_jobs)}
   end
 
   @doc """
