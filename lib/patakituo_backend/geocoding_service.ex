@@ -4,6 +4,8 @@ defmodule PatakituoBackend.GeocodingService do
   Results are restricted to Kenya.
   """
 
+  require Logger
+
   @nominatim Application.compile_env(:patakituo_backend, :nominatim, [])
   @base_url Keyword.get(@nominatim, :url, "https://nominatim.openstreetmap.org")
   @user_agent Keyword.get(@nominatim, :user_agent, "PatakituoBackend/1.0")
@@ -34,7 +36,12 @@ defmodule PatakituoBackend.GeocodingService do
       {:ok, %{status: 200, body: []}} ->
         {:error, :not_found}
 
-      _ ->
+      {:ok, %{status: status, body: body}} ->
+        Logger.warning("Nominatim unexpected response: status=#{status} body=#{inspect(body)}")
+        {:error, :api_error}
+
+      {:error, reason} ->
+        Logger.warning("Nominatim request failed: #{inspect(reason)}")
         {:error, :api_error}
     end
   end
