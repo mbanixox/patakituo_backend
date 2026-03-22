@@ -13,7 +13,7 @@ end
 config :patakituo_backend, PatakituoBackend.Repo,
   username: System.get_env("POSTGRES_USER"),
   password: System.get_env("POSTGRES_PASSWORD"),
-  hostname: "localhost",
+  hostname: System.get_env("POSTGRES_HOST"),
   port: System.get_env("POSTGRES_PORT", "5432") |> String.to_integer(),
   database: System.get_env("POSTGRES_DB"),
   stacktrace: true,
