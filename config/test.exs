@@ -12,6 +12,7 @@ config :patakituo_backend, PatakituoBackend.Repo,
   hostname: "localhost",
   database: "patakituo_backend_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
+  types: PatakituoBackend.PostgresTypes,
   pool_size: System.schedulers_online() * 2
 
 # We don't run a server during test. If one is required,
