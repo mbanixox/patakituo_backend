@@ -23,10 +23,10 @@ defmodule PatakituoBackend.Workers.GeocodingWorker do
         station
         |> change(location: point, location_available: true)
         |> Repo.update!()
+        {:ok, "Location updated for polling station #{id}"}
 
       {:error, :not_found} ->
-        # skips if no result
-        :ok
+        {:error, "Location not found for polling station #{id}"}
 
       {:error, :api_error} ->
         {:error, "Geocoding API error for polling station #{id}"}
